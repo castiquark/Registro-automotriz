@@ -1,0 +1,6 @@
+{
+  "name": "AutoHistorial Pro - Historial Vehicular & Red de Mecánicos",
+  "description": "Libreta digital de mantenimientos y reparaciones vehiculares para talleres mecánicos de Uruguay y Argentina. Registro ágil por matrícula o número de chasis/motor con reparto de ingresos para mecánicos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
