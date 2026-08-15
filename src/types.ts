@@ -167,6 +167,7 @@ export interface AiAnalysisResult {
 }
 
 export type ViewMode =
+  | 'landing'
   | 'search'
   | 'vehicle_report'
   | 'mechanics_portal'

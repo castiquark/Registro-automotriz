@@ -49,6 +49,25 @@ export const VehicleSearch: React.FC<VehicleSearchProps> = ({ onOpenNewVehicle }
 
   return (
     <div className="space-y-6 sm:space-y-8 pb-16 max-w-6xl mx-auto">
+      {/* Back to Home / Role Selection */}
+      <div className="flex items-center justify-between">
+        <button
+          id="back-to-landing-btn"
+          onClick={() => setActiveView('landing')}
+          className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 bg-white hover:bg-blue-50 px-3.5 py-2 rounded-xl border border-slate-200 transition-colors shadow-2xs"
+        >
+          <span>← Volver a Inicio / Cambiar Perfil</span>
+        </button>
+
+        <button
+          onClick={() => setActiveView('mechanics_portal')}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200 transition-colors"
+        >
+          <Wrench className="w-3.5 h-3.5" />
+          <span>¿Eres mecánico? Ir al Portal</span>
+        </button>
+      </div>
+
       {/* Hero Search Section */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 p-5 sm:p-8 md:p-10 border border-slate-700/60 shadow-xl text-white">
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />

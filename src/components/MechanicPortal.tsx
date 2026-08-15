@@ -40,6 +40,7 @@ export const MechanicPortal: React.FC<MechanicPortalProps> = ({
     vehicles,
     transactions,
     formatCurrency,
+    setActiveView,
   } = useApp();
 
   const currentMechanic = getCurrentMechanic() || mechanics[0];
@@ -83,6 +84,25 @@ export const MechanicPortal: React.FC<MechanicPortalProps> = ({
 
   return (
     <div className="space-y-6 sm:space-y-8 pb-20 max-w-6xl mx-auto">
+      {/* Back to Home / Role Selection */}
+      <div className="flex items-center justify-between">
+        <button
+          id="mechanic-back-to-landing-btn"
+          onClick={() => setActiveView('landing')}
+          className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-emerald-700 bg-white hover:bg-emerald-50 px-3.5 py-2 rounded-xl border border-slate-200 transition-colors shadow-2xs"
+        >
+          <span>← Volver a Inicio / Cambiar Perfil</span>
+        </button>
+
+        <button
+          onClick={() => setActiveView('search')}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl border border-blue-200 transition-colors"
+        >
+          <Search className="w-3.5 h-3.5" />
+          <span>Consultar Vehículos como Usuario</span>
+        </button>
+      </div>
+
       {/* Top Banner / Switcher */}
       <div className="bg-slate-900 text-white rounded-3xl p-5 sm:p-8 border border-slate-800 shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />

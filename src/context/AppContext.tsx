@@ -123,7 +123,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [unlockedVehicles, setUnlockedVehicles] = useState<string[]>(['veh-1']); // First vehicle unlocked for demonstration
-  const [activeView, setActiveView] = useState<ViewMode>('search');
+  const [activeView, setActiveView] = useState<ViewMode>('landing');
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>('veh-1');
   const [selectedMechanicId, setSelectedMechanicId] = useState<string>('mec-1');
   const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState<boolean>(false);

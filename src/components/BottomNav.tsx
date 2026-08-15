@@ -8,13 +8,18 @@ export const BottomNav: React.FC = () => {
 
   const navItems: { id: ViewMode; label: string; icon: React.ReactNode; badge?: string }[] = [
     {
+      id: 'landing',
+      label: 'Inicio',
+      icon: <ShieldCheck className="w-5 h-5" />
+    },
+    {
       id: 'search',
       label: 'Consultar',
       icon: <Search className="w-5 h-5" />
     },
     {
       id: 'vehicle_report',
-      label: 'Informe Auto',
+      label: 'Informe',
       icon: <FileText className="w-5 h-5" />,
       badge: selectedVehicleId ? '1' : undefined
     },
@@ -34,9 +39,9 @@ export const BottomNav: React.FC = () => {
     <nav
       id="mobile-bottom-navigation"
       aria-label="Navegación principal móvil"
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 px-2 py-1.5 shadow-2xl safe-area-inset-bottom"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 px-1 py-1.5 shadow-2xl safe-area-inset-bottom"
     >
-      <div className="grid grid-cols-4 gap-1 max-w-md mx-auto">
+      <div className="grid grid-cols-5 gap-1 max-w-md mx-auto">
         {navItems.map((item) => {
           const isActive = activeView === item.id;
           return (

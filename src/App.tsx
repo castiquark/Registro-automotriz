@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
+import { LandingHome } from './components/LandingHome';
 import { VehicleSearch } from './components/VehicleSearch';
 import { VehicleReportView } from './components/VehicleReportView';
 import { MechanicPortal } from './components/MechanicPortal';
@@ -35,6 +36,13 @@ function MainApp() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-8">
+        {activeView === 'landing' && (
+          <LandingHome
+            onOpenNewRepair={() => setIsNewRepairModalOpen(true)}
+            onOpenNewVehicle={() => setIsNewVehicleModalOpen(true)}
+          />
+        )}
+
         {activeView === 'search' && (
           <VehicleSearch onOpenNewVehicle={() => setIsNewVehicleModalOpen(true)} />
         )}

@@ -23,6 +23,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewRepair, onOpenNewVehicl
   } = useApp();
 
   const navItems: { id: ViewMode; label: string; icon: React.ReactNode }[] = [
+    { id: 'landing', label: 'Inicio', icon: <ShieldCheck className="w-4 h-4" /> },
     { id: 'search', label: 'Consultar Auto', icon: <Search className="w-4 h-4" /> },
     { id: 'mechanics_portal', label: 'Portal Talleres', icon: <Wrench className="w-4 h-4" /> },
     { id: 'revenue_ecosystem', label: 'Calculadora Royalties', icon: <BarChart3 className="w-4 h-4" /> },
@@ -70,7 +71,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewRepair, onOpenNewVehicl
           {/* Logo */}
           <div
             id="app-logo-btn"
-            onClick={() => setActiveView('search')}
+            onClick={() => setActiveView('landing')}
             className="flex items-center gap-2.5 cursor-pointer select-none group shrink-0"
           >
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
