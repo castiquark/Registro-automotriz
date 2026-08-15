@@ -166,6 +166,18 @@ export interface AiAnalysisResult {
   valuationImpact: string;
 }
 
+export type UserRole = 'user' | 'mechanic';
+
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  mechanicId?: string;
+  workshopName?: string;
+  city?: string;
+}
+
 export type ViewMode =
   | 'landing'
   | 'search'

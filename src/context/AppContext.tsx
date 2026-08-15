@@ -11,7 +11,9 @@ import {
   ViewMode,
   SubscriptionTier,
   SubscriptionTierId,
-  Currency
+  Currency,
+  AuthUser,
+  UserRole
 } from '../types';
 import {
   INITIAL_VEHICLES,
@@ -31,12 +33,22 @@ interface AppContextType {
   transactions: QueryTransaction[];
   payouts: PayoutRequest[];
   userSubscription: UserSubscription;
+  currentUser: AuthUser | null;
   activeView: ViewMode;
   selectedVehicleId: string | null;
   selectedMechanicId: string;
   selectedCurrency: Currency;
   isSubscriptionModalOpen: boolean;
+  isLoginModalOpen: boolean;
   unlockedVehicles: string[];
+  isProcessing: boolean;
+  processingMessage: string | null;
+  activeToast: { message: string; type: 'success' | 'info' | 'error' } | null;
+  login: (role: UserRole, details?: { name?: string; email?: string; mechanicId?: string; workshopName?: string }) => void;
+  logout: () => void;
+  setIsLoginModalOpen: (open: boolean) => void;
+  setProcessing: (isProcessing: boolean, message?: string | null) => void;
+  showToast: (message: string, type?: 'success' | 'info' | 'error') => void;
   setActiveView: (view: ViewMode) => void;
   setSelectedVehicleId: (id: string | null) => void;
   setSelectedMechanicId: (id: string) => void;
@@ -122,11 +134,96 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
   });
 
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_PREFIX + 'currentUser');
+    return saved ? JSON.parse(saved) : null;
+  });
+
   const [unlockedVehicles, setUnlockedVehicles] = useState<string[]>(['veh-1']); // First vehicle unlocked for demonstration
-  const [activeView, setActiveView] = useState<ViewMode>('landing');
+  const [activeView, setActiveView] = useState<ViewMode>(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_PREFIX + 'currentUser');
+    if (saved) {
+      const user = JSON.parse(saved);
+      return user.role === 'mechanic' ? 'mechanics_portal' : 'search';
+    }
+    return 'landing';
+  });
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>('veh-1');
   const [selectedMechanicId, setSelectedMechanicId] = useState<string>('mec-1');
   const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState<boolean>(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [processingMessage, setProcessingMessage] = useState<string | null>(null);
+  const [activeToast, setActiveToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
+
+  // Sync currentUser to localStorage
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem(LOCAL_STORAGE_PREFIX + 'currentUser', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem(LOCAL_STORAGE_PREFIX + 'currentUser');
+    }
+  }, [currentUser]);
+
+  const showToast = (message: string, type: 'success' | 'info' | 'error' = 'info') => {
+    setActiveToast({ message, type });
+    setTimeout(() => {
+      setActiveToast((current) => (current?.message === message ? null : current));
+    }, 3500);
+  };
+
+  const setProcessing = (processing: boolean, message: string | null = null) => {
+    setIsProcessing(processing);
+    setProcessingMessage(message);
+  };
+
+  const login = (
+    role: UserRole,
+    details?: { name?: string; email?: string; mechanicId?: string; workshopName?: string }
+  ) => {
+    setProcessing(true, 'Iniciando sesión...');
+    setTimeout(() => {
+      setProcessing(false);
+      if (role === 'user') {
+        const user: AuthUser = {
+          id: 'usr-1',
+          name: details?.name || 'Comprador / Particular',
+          email: details?.email || 'comprador@autohistorial.com',
+          role: 'user'
+        };
+        setCurrentUser(user);
+        setActiveView('search');
+        showToast('Sesión iniciada como Comprador / Usuario', 'success');
+      } else {
+        const targetMechanicId = details?.mechanicId || selectedMechanicId || 'mec-1';
+        setSelectedMechanicId(targetMechanicId);
+        const mechanicData = mechanics.find((m) => m.id === targetMechanicId);
+        const user: AuthUser = {
+          id: 'usr-mec',
+          name: details?.name || mechanicData?.name || 'Mecánico Responsable',
+          email: details?.email || 'taller@autohistorial.com',
+          role: 'mechanic',
+          mechanicId: targetMechanicId,
+          workshopName: details?.workshopName || mechanicData?.workshopName || 'Taller Mecánica del Sur',
+          city: mechanicData?.city || 'Montevideo'
+        };
+        setCurrentUser(user);
+        setActiveView('mechanics_portal');
+        showToast(`Sesión iniciada: ${user.workshopName}`, 'success');
+      }
+      setIsLoginModalOpen(false);
+    }, 450);
+  };
+
+  const logout = () => {
+    setProcessing(true, 'Cerrando sesión...');
+    setTimeout(() => {
+      setProcessing(false);
+      setCurrentUser(null);
+      setActiveView('landing');
+      showToast('Has cerrado sesión', 'info');
+    }, 300);
+  };
 
   // Sync to localStorage
   useEffect(() => {
@@ -519,12 +616,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         transactions,
         payouts,
         userSubscription,
+        currentUser,
         activeView,
         selectedVehicleId,
         selectedMechanicId,
         selectedCurrency,
         isSubscriptionModalOpen,
+        isLoginModalOpen,
         unlockedVehicles,
+        isProcessing,
+        processingMessage,
+        activeToast,
+        login,
+        logout,
+        setIsLoginModalOpen,
+        setProcessing,
+        showToast,
         setActiveView,
         setSelectedVehicleId,
         setSelectedMechanicId,

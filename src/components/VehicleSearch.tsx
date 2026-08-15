@@ -15,7 +15,8 @@ export const VehicleSearch: React.FC<VehicleSearchProps> = ({ onOpenNewVehicle }
     getVehicleRepairs,
     calculateVehicleScore,
     userSubscription,
-    formatCurrency
+    formatCurrency,
+    setProcessing
   } = useApp();
 
   const [query, setQuery] = useState('');
@@ -43,8 +44,12 @@ export const VehicleSearch: React.FC<VehicleSearchProps> = ({ onOpenNewVehicle }
   });
 
   const handleSelectVehicle = (vehicle: Vehicle) => {
-    setSelectedVehicleId(vehicle.id);
-    setActiveView('vehicle_report');
+    setProcessing(true, `Abriendo informe pericial de ${vehicle.brand} ${vehicle.model}...`);
+    setTimeout(() => {
+      setProcessing(false);
+      setSelectedVehicleId(vehicle.id);
+      setActiveView('vehicle_report');
+    }, 200);
   };
 
   return (

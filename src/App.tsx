@@ -14,10 +14,12 @@ import { PrintableReportModal } from './components/PrintableReportModal';
 import { NewRepairModal } from './components/NewRepairModal';
 import { NewTransferModal } from './components/NewTransferModal';
 import { NewVehicleModal } from './components/NewVehicleModal';
+import { LoginModal } from './components/LoginModal';
+import { FeedbackNotifier } from './components/FeedbackNotifier';
 import { ShieldCheck } from 'lucide-react';
 
 function MainApp() {
-  const { activeView, setActiveView } = useApp();
+  const { activeView, setActiveView, isLoginModalOpen, setIsLoginModalOpen } = useApp();
 
   // Modals state
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
@@ -28,6 +30,9 @@ function MainApp() {
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans antialiased selection:bg-blue-600 selection:text-white pb-16 md:pb-0">
+      {/* Visual Feedback & Notification Bar */}
+      <FeedbackNotifier />
+
       {/* Top Header */}
       <Header
         onOpenNewRepair={() => setIsNewRepairModalOpen(true)}
@@ -35,7 +40,7 @@ function MainApp() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-6">
         {activeView === 'landing' && (
           <LandingHome
             onOpenNewRepair={() => setIsNewRepairModalOpen(true)}
@@ -72,32 +77,30 @@ function MainApp() {
       <BottomNav />
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-slate-400 text-xs border-t border-slate-800 mt-12 py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="space-y-3 md:col-span-2">
-              <div className="flex items-center gap-2 text-white font-bold text-base">
-                <ShieldCheck className="w-5 h-5 text-blue-500" />
+      <footer className="bg-slate-900 text-slate-400 text-xs border-t border-slate-800 mt-12 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-white font-bold text-sm">
+                <ShieldCheck className="w-4 h-4 text-blue-500" />
                 <span>AutoHistorial PRO</span>
-                <span className="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded border border-blue-400/30">
+                <span className="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.2 rounded border border-blue-400/30">
                   Uruguay & Argentina
                 </span>
               </div>
-              <p className="text-slate-400 text-xs max-w-md leading-relaxed">
-                La primera plataforma que retribuye económicamente a los talleres mecánicos cada vez que un comprador o automotora consulta el historial de mantenimiento de un vehículo que ellos atendieron.
+              <p className="text-slate-400 text-xs leading-relaxed max-w-sm">
+                Libreta digital de mantenimientos con retribución económica directa del 50% para talleres mecánicos.
               </p>
-              <div className="flex flex-wrap items-center gap-2 text-slate-500 pt-2 text-[11px]">
-                <span className="text-emerald-400 font-semibold">✓ Libreta Digital de Mantenimiento</span>
-                <span>•</span>
-                <span>Sellos QR de Taller</span>
-                <span>•</span>
-                <span>50% Reparto a Talleres</span>
-              </div>
             </div>
 
             <div>
-              <h4 className="font-bold text-white uppercase text-[11px] tracking-wider mb-3">Accesos Directos</h4>
-              <ul className="space-y-2">
+              <h4 className="font-bold text-white uppercase text-[10px] tracking-wider mb-2">Accesos Directos</h4>
+              <ul className="space-y-1.5 text-xs">
+                <li>
+                  <button onClick={() => setActiveView('landing')} className="hover:text-white transition-colors">
+                    🏠 Inicio & Login
+                  </button>
+                </li>
                 <li>
                   <button onClick={() => setActiveView('search')} className="hover:text-white transition-colors">
                     🔍 Consultar Matrícula / VIN
@@ -105,47 +108,29 @@ function MainApp() {
                 </li>
                 <li>
                   <button onClick={() => setActiveView('mechanics_portal')} className="hover:text-white transition-colors">
-                    🔧 Portal para Mecánicos
-                  </button>
-                </li>
-                <li>
-                  <button onClick={() => setActiveView('revenue_ecosystem')} className="hover:text-white transition-colors">
-                    📊 Calculadora de Ingresos
-                  </button>
-                </li>
-                <li>
-                  <button onClick={() => setActiveView('pricing')} className="hover:text-white transition-colors">
-                    💎 Planes y Precios
+                    🔧 Portal para Talleres
                   </button>
                 </li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-bold text-white uppercase text-[11px] tracking-wider mb-3">Red de Talleres</h4>
-              <ul className="space-y-2 text-slate-400">
-                <li>✓ Registro gratuito para mecánicos</li>
-                <li>✓ Firma digital pericial en cada orden</li>
-                <li>✓ Pagos por BROU, Santander, Itaú, Prex y CBU</li>
-                <li>✓ Certificado anti-fraude de odómetro</li>
-              </ul>
+              <h4 className="font-bold text-white uppercase text-[10px] tracking-wider mb-2">Garantías de Red</h4>
+              <p className="text-slate-400 text-xs leading-relaxed">
+                Trazabilidad inmutable, firma digital de taller y auditoría cronológica de kilometraje real.
+              </p>
             </div>
           </div>
 
-          <div className="pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
-            <div>
-              © {new Date().getFullYear()} AutoHistorial PRO. Sistema de trazabilidad vehicular pericial.
-            </div>
-            <div className="flex items-center gap-4">
-              <span>Términos y Condiciones</span>
-              <span>Protección de Datos</span>
-              <span>Liquidación de Regalías</span>
-            </div>
+          <div className="pt-4 border-t border-slate-800 text-[11px] text-slate-500 flex flex-col sm:flex-row justify-between gap-2">
+            <span>© {new Date().getFullYear()} AutoHistorial PRO.</span>
+            <span>Uruguay 🇺🇾 & Argentina 🇦🇷</span>
           </div>
         </div>
       </footer>
 
       {/* Global Modals */}
+      <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
       <SubscriptionModal />
       <AiDiagnosticsModal isOpen={isAiModalOpen} onClose={() => setIsAiModalOpen(false)} />
       <PrintableReportModal isOpen={isPrintModalOpen} onClose={() => setIsPrintModalOpen(false)} />

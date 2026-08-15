@@ -1,5 +1,16 @@
 import React from 'react';
-import { ShieldCheck, Search, Wrench, BarChart3, Sparkles, PlusCircle, Globe, ChevronDown, Check } from 'lucide-react';
+import {
+  ShieldCheck,
+  Search,
+  Wrench,
+  BarChart3,
+  Sparkles,
+  PlusCircle,
+  LogIn,
+  LogOut,
+  User,
+  Car
+} from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { ViewMode, Currency } from '../types';
 
@@ -8,50 +19,42 @@ interface HeaderProps {
   onOpenNewVehicle: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenNewRepair, onOpenNewVehicle }) => {
+export const Header: React.FC<HeaderProps> = ({ onOpenNewRepair }) => {
   const {
     activeView,
     setActiveView,
     userSubscription,
     setIsSubscriptionModalOpen,
-    mechanics,
-    selectedMechanicId,
-    setSelectedMechanicId,
+    currentUser,
+    logout,
+    setIsLoginModalOpen,
     selectedCurrency,
     setSelectedCurrency,
-    formatCurrency
   } = useApp();
 
-  const navItems: { id: ViewMode; label: string; icon: React.ReactNode }[] = [
+  const navItems: { id: ViewMode; label: string; icon: React.ReactNode; show?: boolean }[] = [
     { id: 'landing', label: 'Inicio', icon: <ShieldCheck className="w-4 h-4" /> },
     { id: 'search', label: 'Consultar Auto', icon: <Search className="w-4 h-4" /> },
     { id: 'mechanics_portal', label: 'Portal Talleres', icon: <Wrench className="w-4 h-4" /> },
-    { id: 'revenue_ecosystem', label: 'Calculadora Royalties', icon: <BarChart3 className="w-4 h-4" /> },
-    { id: 'pricing', label: 'Planes y Precios', icon: <Sparkles className="w-4 h-4" /> }
-  ];
-
-  const currencyOptions: { code: Currency; label: string; flag: string }[] = [
-    { code: 'UYU', label: '$ UYU (Uruguay)', flag: '🇺🇾' },
-    { code: 'ARS', label: '$ ARS (Argentina)', flag: '🇦🇷' },
-    { code: 'USD', label: 'US$ (Dólares)', flag: '🌐' }
+    { id: 'pricing', label: 'Planes', icon: <Sparkles className="w-4 h-4" /> }
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-slate-900 border-b border-slate-800 text-white shadow-lg">
+    <header className="sticky top-0 z-40 bg-slate-900 border-b border-slate-800 text-white shadow-md">
       {/* Top Banner (clean and concise) */}
-      <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-xs py-1 px-3 sm:px-4 text-center text-blue-100 font-medium flex items-center justify-between sm:justify-center gap-2">
+      <div className="bg-slate-950/80 text-xs py-1 px-3 sm:px-4 text-center text-slate-300 font-medium flex items-center justify-between gap-2 border-b border-slate-800/80">
         <div className="flex items-center gap-1.5 truncate">
-          <span className="inline-flex items-center px-1.5 py-0.2 rounded bg-white/20 text-white font-bold text-[10px] uppercase">
-            🇺🇾 Uruguay & 🇦🇷 Argentina
+          <span className="inline-flex items-center px-1.5 py-0.2 rounded bg-blue-600/30 text-blue-300 font-bold text-[10px] uppercase border border-blue-500/30">
+            🇺🇾 UY & 🇦🇷 AR
           </span>
-          <span className="text-[11px] sm:text-xs truncate">
-            Cada consulta retribuye directamente a los mecánicos y talleres que mantuvieron el vehículo.
+          <span className="text-[11px] truncate">
+            Libreta digital de mantenimientos con 50% de regalías a mecánicos
           </span>
         </div>
 
-        {/* Currency Switcher in micro-banner for mobile fast switch */}
-        <div className="flex items-center gap-1 shrink-0 bg-black/20 rounded-md px-1.5 py-0.5 border border-white/10 text-[11px]">
-          <span className="text-[10px] text-blue-200 hidden xs:inline">Moneda:</span>
+        {/* Currency Switcher */}
+        <div className="flex items-center gap-1 shrink-0 bg-slate-800/90 rounded-md px-1.5 py-0.5 border border-slate-700 text-[11px]">
+          <span className="text-[10px] text-slate-400 hidden xs:inline">Moneda:</span>
           <select
             id="currency-selector-top"
             value={selectedCurrency}
@@ -74,15 +77,15 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewRepair, onOpenNewVehicl
             onClick={() => setActiveView('landing')}
             className="flex items-center gap-2.5 cursor-pointer select-none group shrink-0"
           >
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
-              <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
+              <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
             <div>
               <div className="flex items-center gap-1.5 leading-none">
                 <span className="font-black text-base sm:text-lg text-white tracking-tight">AutoHistorial</span>
-                <span className="text-[10px] sm:text-xs px-1.5 py-0.5 rounded bg-blue-500/30 text-blue-300 font-bold border border-blue-400/30">PRO</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded bg-blue-500/30 text-blue-300 font-bold border border-blue-400/30">PRO</span>
               </div>
-              <p className="text-[10px] sm:text-[11px] text-slate-400 font-normal hidden xs:block mt-0.5">Historial Verificado por Talleres</p>
+              <p className="text-[10px] text-slate-400 font-normal hidden xs:block mt-0.5">Libreta Digital de Taller</p>
             </div>
           </div>
 
@@ -108,30 +111,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewRepair, onOpenNewVehicl
             })}
           </nav>
 
-          {/* Right Action buttons */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* Mechanic Switcher dropdown (for demo and workshop portal) */}
-            <div className="hidden lg:flex items-center gap-1.5 bg-slate-800/90 py-1 px-2.5 rounded-lg border border-slate-700 text-xs">
-              <span className="text-slate-400">Taller:</span>
-              <select
-                id="header-mechanic-select"
-                value={selectedMechanicId}
-                onChange={(e) => setSelectedMechanicId(e.target.value)}
-                className="bg-transparent text-blue-300 font-semibold focus:outline-none cursor-pointer max-w-[150px] truncate"
-              >
-                {mechanics.map((m) => (
-                  <option key={m.id} value={m.id} className="bg-slate-900 text-white">
-                    {m.workshopName} ({m.city})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Quick Record Service Button */}
+          {/* Right Action buttons & Auth */}
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            {/* Quick Record Service Button for Mechanics */}
             <button
               id="header-new-repair-btn"
               onClick={onOpenNewRepair}
-              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-colors shadow-sm"
+              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-colors shadow-xs"
               title="Registrar mantenimiento de taller"
             >
               <PlusCircle className="w-3.5 h-3.5" />
@@ -139,30 +125,40 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNewRepair, onOpenNewVehicl
               <span className="sm:hidden">Servicio</span>
             </button>
 
-            {/* Subscription Button / Badge */}
-            {userSubscription.active ? (
-              <button
-                id="user-sub-badge"
-                onClick={() => setIsSubscriptionModalOpen(true)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-blue-500/20 border border-blue-400/40 text-blue-300 text-xs font-bold hover:bg-blue-500/30 transition-colors"
-                title="Gestionar pase de consultas"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-                <span className="hidden sm:inline">{userSubscription.tierName}:</span>
-                <span>
-                  {userSubscription.queriesRemaining === 'unlimited'
-                    ? 'Ilimitadas'
-                    : `${userSubscription.queriesRemaining} disp.`}
-                </span>
-              </button>
+            {/* Auth / Profile Area */}
+            {currentUser ? (
+              <div className="flex items-center gap-1.5 bg-slate-800/90 py-1 px-2 sm:px-2.5 rounded-xl border border-slate-700 text-xs">
+                <div
+                  className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${
+                    currentUser.role === 'mechanic' ? 'bg-emerald-600' : 'bg-blue-600'
+                  }`}
+                >
+                  {currentUser.role === 'mechanic' ? <Wrench className="w-3 h-3" /> : <User className="w-3 h-3" />}
+                </div>
+                <div className="hidden sm:block text-left max-w-[120px] truncate">
+                  <span className="font-bold text-white block truncate leading-none text-[11px]">
+                    {currentUser.name}
+                  </span>
+                  <span className="text-[10px] text-slate-400 leading-none">
+                    {currentUser.role === 'mechanic' ? 'Taller' : 'Usuario'}
+                  </span>
+                </div>
+                <button
+                  onClick={logout}
+                  className="p-1 text-slate-400 hover:text-white transition-colors ml-1"
+                  title="Cerrar sesión"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
             ) : (
               <button
-                id="header-get-plan-btn"
-                onClick={() => setIsSubscriptionModalOpen(true)}
-                className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all"
+                id="header-login-btn"
+                onClick={() => setIsLoginModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-bold transition-all"
               >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Ver Planes</span>
+                <LogIn className="w-3.5 h-3.5 text-blue-400" />
+                <span>Ingresar</span>
               </button>
             )}
           </div>

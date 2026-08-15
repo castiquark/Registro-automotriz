@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Wrench, ShieldCheck, Plus, Trash2, Tag, Calendar, Gauge, FileText, CheckCircle2, Car, Sparkles } from 'lucide-react';
+import { X, Wrench, ShieldCheck, Plus, Trash2, Tag, Calendar, Gauge, FileText, CheckCircle2, Car, Sparkles, Loader2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { RepairCategory, Country } from '../types';
 
@@ -20,9 +20,20 @@ const COMMON_SERVICES = [
 ];
 
 export const NewRepairModal: React.FC<NewRepairModalProps> = ({ isOpen, onClose }) => {
-  const { vehicles, selectedVehicleId, mechanics, getCurrentMechanic, addRepair, addNewVehicle, setSelectedVehicleId } = useApp();
+  const {
+    vehicles,
+    selectedVehicleId,
+    mechanics,
+    getCurrentMechanic,
+    addRepair,
+    addNewVehicle,
+    setSelectedVehicleId,
+    setProcessing,
+    showToast
+  } = useApp();
 
   const currentMechanic = getCurrentMechanic() || mechanics[0];
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Mode: select existing vehicle or quick input by plate/chassis
   const [inputMode, setInputMode] = useState<'existing' | 'quick_new'>(
@@ -126,26 +137,34 @@ export const NewRepairModal: React.FC<NewRepairModalProps> = ({ isOpen, onClose 
 
     const km = parseInt(mileage) || (targetExistingVehicle?.currentMileage || 0) + 5000;
 
-    addRepair({
-      vehicleId: finalVehicleId,
-      mechanicId: currentMechanic.id,
-      mechanicName: currentMechanic.name,
-      workshopName: currentMechanic.workshopName,
-      workshopBadge: currentMechanic.tier === 'Master Certificado' ? 'Master Certificado' : currentMechanic.tier === 'Oro' ? 'Certificado Gold' : 'Taller Oficial',
-      workshopCity: currentMechanic.city,
-      country: currentMechanic.country,
-      date,
-      mileage: km,
-      category,
-      title: title || `Mantenimiento de ${category.replace(/_/g, ' ')}`,
-      description: description || `Servicio profesional de mantenimiento registrado por ${currentMechanic.workshopName}.`,
-      replacedParts,
-      invoiceNumber: invoiceNumber.trim() || `FAC-${Date.now().toString().slice(-6)}`,
-      warrantyMonths,
-    });
+    setIsSubmitting(true);
+    setProcessing(true, 'Sellando servicio con firma pericial de taller...');
 
-    setSelectedVehicleId(finalVehicleId);
-    onClose();
+    setTimeout(() => {
+      addRepair({
+        vehicleId: finalVehicleId,
+        mechanicId: currentMechanic.id,
+        mechanicName: currentMechanic.name,
+        workshopName: currentMechanic.workshopName,
+        workshopBadge: currentMechanic.tier === 'Master Certificado' ? 'Master Certificado' : currentMechanic.tier === 'Oro' ? 'Certificado Gold' : 'Taller Oficial',
+        workshopCity: currentMechanic.city,
+        country: currentMechanic.country,
+        date,
+        mileage: km,
+        category,
+        title: title || `Mantenimiento de ${category.replace(/_/g, ' ')}`,
+        description: description || `Servicio profesional de mantenimiento registrado por ${currentMechanic.workshopName}.`,
+        replacedParts,
+        invoiceNumber: invoiceNumber.trim() || `FAC-${Date.now().toString().slice(-6)}`,
+        warrantyMonths,
+      });
+
+      setSelectedVehicleId(finalVehicleId);
+      setIsSubmitting(false);
+      setProcessing(false);
+      showToast('¡Servicio registrado exitosamente con firma digital!', 'success');
+      onClose();
+    }, 400);
   };
 
   if (!isOpen) return null;
@@ -447,16 +466,27 @@ export const NewRepairModal: React.FC<NewRepairModalProps> = ({ isOpen, onClose 
             <button
               type="button"
               onClick={onClose}
+              disabled={isSubmitting}
               className="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition-colors min-h-[44px]"
             >
               Cancelar
             </button>
             <button
               type="submit"
+              disabled={isSubmitting}
               className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-md shadow-emerald-600/30 flex items-center gap-1.5 min-h-[44px]"
             >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Guardar Mantenimiento</span>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Guardando...</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Guardar Mantenimiento</span>
+                </>
+              )}
             </button>
           </div>
         </form>

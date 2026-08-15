@@ -6,16 +6,13 @@ import {
   ArrowRight,
   PlusCircle,
   Car,
-  Gauge,
-  Award,
-  Sparkles,
-  DollarSign,
-  TrendingUp,
-  Building2,
   CheckCircle2,
-  ChevronRight,
-  ShieldAlert,
-  Coins
+  Coins,
+  Building2,
+  LogIn,
+  LogOut,
+  UserCheck,
+  Loader2
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
@@ -24,7 +21,7 @@ interface LandingHomeProps {
   onOpenNewVehicle: () => void;
 }
 
-export const LandingHome: React.FC<LandingHomeProps> = ({ onOpenNewRepair, onOpenNewVehicle }) => {
+export const LandingHome: React.FC<LandingHomeProps> = ({ onOpenNewRepair }) => {
   const {
     setActiveView,
     setSelectedVehicleId,
@@ -35,9 +32,16 @@ export const LandingHome: React.FC<LandingHomeProps> = ({ onOpenNewRepair, onOpe
     getCurrentMechanic,
     totalRoyaltiesDistributedUyu,
     formatCurrency,
+    currentUser,
+    login,
+    logout,
+    setIsLoginModalOpen,
+    setProcessing,
+    showToast
   } = useApp();
 
   const [directSearchQuery, setDirectSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const currentMechanic = getCurrentMechanic() || mechanics[0];
 
   const handleDirectSearch = (e: React.FormEvent) => {
@@ -48,287 +52,272 @@ export const LandingHome: React.FC<LandingHomeProps> = ({ onOpenNewRepair, onOpe
       return;
     }
 
-    const found = vehicles.find(
-      (v) =>
-        v.plate.toUpperCase().includes(q) ||
-        v.vin.toUpperCase().includes(q) ||
-        (v.engineNumber && v.engineNumber.toUpperCase().includes(q))
-    );
+    setIsSearching(true);
+    setProcessing(true, 'Buscando vehículo en la red de talleres...');
 
-    if (found) {
-      setSelectedVehicleId(found.id);
-      setActiveView('vehicle_report');
-    } else {
-      setActiveView('search');
-    }
+    setTimeout(() => {
+      setIsSearching(false);
+      setProcessing(false);
+
+      const found = vehicles.find(
+        (v) =>
+          v.plate.toUpperCase().includes(q) ||
+          v.vin.toUpperCase().includes(q) ||
+          (v.engineNumber && v.engineNumber.toUpperCase().includes(q))
+      );
+
+      if (found) {
+        setSelectedVehicleId(found.id);
+        setActiveView('vehicle_report');
+        showToast(`Vehículo ${found.brand} ${found.model} (${found.plate}) encontrado`, 'success');
+      } else {
+        setActiveView('search');
+        showToast(`No se halló coincidencia exacta para "${q}". Mostrando listado completo`, 'info');
+      }
+    }, 400);
   };
 
   const handleSelectSample = (plate: string) => {
-    const found = vehicles.find((v) => v.plate === plate);
-    if (found) {
-      setSelectedVehicleId(found.id);
-      setActiveView('vehicle_report');
-    }
+    setIsSearching(true);
+    setProcessing(true, 'Cargando informe pericial...');
+    setTimeout(() => {
+      setIsSearching(false);
+      setProcessing(false);
+      const found = vehicles.find((v) => v.plate === plate);
+      if (found) {
+        setSelectedVehicleId(found.id);
+        setActiveView('vehicle_report');
+      }
+    }, 300);
+  };
+
+  const handleLoginAsUser = () => {
+    login('user');
+  };
+
+  const handleLoginAsMechanic = (mechanicId?: string) => {
+    login('mechanic', { mechanicId: mechanicId || selectedMechanicId });
   };
 
   return (
-    <div className="space-y-8 sm:space-y-10 pb-16 max-w-6xl mx-auto">
-      {/* Hero Welcome Header */}
-      <div className="text-center max-w-3xl mx-auto space-y-3 sm:space-y-4 pt-2 sm:pt-4">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold shadow-xs">
-          <ShieldCheck className="w-4 h-4 text-blue-600" />
-          <span>Plataforma de Trazabilidad & Libreta Digital • Uruguay 🇺🇾 & Argentina 🇦🇷</span>
+    <div className="space-y-6 sm:space-y-8 pb-16 max-w-5xl mx-auto">
+      {/* Session Banner if Logged In */}
+      {currentUser && (
+        <div className="p-3.5 bg-slate-900 text-white rounded-2xl flex items-center justify-between gap-3 text-xs shadow-md border border-slate-800">
+          <div className="flex items-center gap-2 min-w-0">
+            <div
+              className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                currentUser.role === 'mechanic' ? 'bg-emerald-600' : 'bg-blue-600'
+              }`}
+            >
+              {currentUser.role === 'mechanic' ? <Wrench className="w-4 h-4" /> : <Car className="w-4 h-4" />}
+            </div>
+            <div className="truncate">
+              <span className="text-slate-400">Sesión activa: </span>
+              <strong className="text-white">{currentUser.name}</strong>
+              <span className="text-slate-400"> ({currentUser.role === 'mechanic' ? currentUser.workshopName : 'Comprador'})</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setActiveView(currentUser.role === 'mechanic' ? 'mechanics_portal' : 'search')}
+              className="px-3 py-1 bg-blue-600 hover:bg-blue-500 rounded-lg text-white font-bold transition-colors"
+            >
+              Ir a mi Panel
+            </button>
+            <button
+              onClick={logout}
+              className="p-1 text-slate-400 hover:text-white transition-colors"
+              title="Cerrar sesión"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Clean Minimalist Header */}
+      <div className="text-center max-w-2xl mx-auto space-y-2.5 pt-2">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-[11px] font-bold">
+          <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+          <span>Libreta Digital de Taller • Uruguay 🇺🇾 y Argentina 🇦🇷</span>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-slate-900 leading-tight">
-          ¿Cómo deseas ingresar a <br className="hidden sm:inline" />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600">
-            AutoHistorial PRO
-          </span>
-          ?
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
+          Ingreso a AutoHistorial PRO
         </h1>
 
-        <p className="text-slate-600 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
-          Selecciona tu perfil para consultar el historial verificado de un vehículo o ingresar al panel de gestión de tu taller mecánico.
+        <p className="text-slate-600 text-xs sm:text-sm">
+          Acceso simplificado: consulta historiales o gestiona los servicios de tu taller.
         </p>
       </div>
 
-      {/* Main Dual Role Selection Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-        {/* ======================================================== */}
-        {/* CARD 1: USUARIO / COMPRADOR / PROPIETARIO */}
-        {/* ======================================================== */}
-        <div className="relative group bg-white rounded-3xl border-2 border-slate-200 hover:border-blue-500 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col justify-between overflow-hidden">
-          {/* Top subtle glow bar */}
-          <div className="h-2 bg-gradient-to-r from-blue-500 to-indigo-600 w-full" />
-
-          <div className="p-6 sm:p-8 space-y-6">
-            {/* Header / Role Badge */}
-            <div className="flex items-start justify-between gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs border border-blue-100 group-hover:scale-105 transition-transform">
-                <Car className="w-7 h-7" />
+      {/* Dual Clean Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+        {/* ========================================= */}
+        {/* CARD 1: USUARIO / COMPRADOR */}
+        {/* ========================================= */}
+        <div className="bg-white rounded-2xl border-2 border-slate-200 hover:border-blue-500 shadow-sm hover:shadow-md transition-all p-5 sm:p-6 flex flex-col justify-between space-y-5">
+          <div className="space-y-4">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                  <Car className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-slate-900">Comprador / Usuario</h2>
+                  <p className="text-[11px] text-slate-500">Consultar historial de auto</p>
+                </div>
               </div>
-              <span className="px-3 py-1 rounded-full bg-blue-100/70 text-blue-800 text-xs font-black uppercase tracking-wider">
-                Para Compradores & Dueños
+              <span className="px-2 py-0.5 rounded-full bg-blue-100/70 text-blue-800 text-[10px] font-bold">
+                Auditoría
               </span>
             </div>
 
-            {/* Title & Description */}
-            <div className="space-y-2">
-              <h2 className="text-2xl font-black text-slate-900 group-hover:text-blue-600 transition-colors leading-tight">
-                Consultar Historial de un Vehículo
-              </h2>
-              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                Audita intervenciones mecánicas, sellos de taller, repuestos colocados y consistencia de kilometraje antes de comprar o vender un auto.
-              </p>
-            </div>
-
-            {/* Quick In-Card Search Input */}
-            <form onSubmit={handleDirectSearch} className="space-y-2 pt-2">
-              <label className="text-xs font-bold text-slate-700 block">
-                Búsqueda rápida directa por Matrícula o Chasis:
+            {/* Direct Fast Search */}
+            <form onSubmit={handleDirectSearch} className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-700 block">
+                Búsqueda rápida por Matrícula o Chasis:
               </label>
-              <div className="flex items-center gap-1.5 p-1 bg-slate-50 border border-slate-300 rounded-2xl focus-within:border-blue-500 focus-within:bg-white transition-all shadow-inner">
-                <div className="pl-3 text-slate-400">
-                  <Search className="w-4 h-4" />
-                </div>
+              <div className="flex items-center gap-1.5 p-1 bg-slate-50 border border-slate-300 rounded-xl focus-within:border-blue-500 focus-within:bg-white transition-all">
+                <Search className="w-4 h-4 text-slate-400 ml-2" />
                 <input
                   type="text"
-                  placeholder="ej. SBX 4821, AAP 9321 o Chasis..."
+                  placeholder="ej. SBX 4821 o Chasis..."
                   value={directSearchQuery}
                   onChange={(e) => setDirectSearchQuery(e.target.value)}
-                  className="w-full bg-transparent px-2 py-2 text-xs sm:text-sm font-bold uppercase placeholder:normal-case placeholder:font-normal placeholder-slate-400 text-slate-900 focus:outline-none min-h-[40px]"
+                  className="w-full bg-transparent px-2 py-1.5 text-xs font-bold uppercase placeholder:normal-case placeholder:font-normal placeholder-slate-400 text-slate-900 focus:outline-none"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-colors shrink-0 shadow-xs min-h-[40px]"
+                  disabled={isSearching}
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition-colors shrink-0 flex items-center gap-1"
                 >
-                  Buscar
+                  {isSearching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>Buscar</span>}
                 </button>
               </div>
 
-              {/* Sample Plates Quick Chips */}
-              <div className="flex flex-wrap items-center gap-1 pt-1">
-                <span className="text-[11px] text-slate-400 font-medium">Ejemplos:</span>
+              {/* Sample Chips */}
+              <div className="flex flex-wrap items-center gap-1 pt-0.5">
+                <span className="text-[10px] text-slate-400">Ejemplos:</span>
                 <button
                   type="button"
                   onClick={() => handleSelectSample('SBX 4821')}
-                  className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-700 transition-colors"
+                  className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-700"
                 >
-                  🇺🇾 SBX 4821
+                  SBX 4821
                 </button>
                 <button
                   type="button"
                   onClick={() => handleSelectSample('B 518 902')}
-                  className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-amber-50 hover:bg-amber-100 text-amber-800 transition-colors"
+                  className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-50 hover:bg-amber-100 text-amber-800"
                 >
-                  ⚠️ B 518 902 (Alerta)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSelectSample('AD 812 PK')}
-                  className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-700 transition-colors"
-                >
-                  🇦🇷 AD 812 PK
+                  B 518 902 (Alerta)
                 </button>
               </div>
             </form>
 
-            {/* Feature List */}
-            <div className="space-y-2 pt-2 border-t border-slate-100 text-xs text-slate-600">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Libreta digital inmutable con órdenes de taller</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Auditoría de odómetro y detección de alteraciones de km</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Informe pericial exportable en PDF con código QR</span>
-              </div>
-            </div>
+            <ul className="space-y-1.5 text-xs text-slate-600 pt-1">
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>Services, repuestos y firmas de taller</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>Auditoría de odómetro y kilometraje real</span>
+              </li>
+            </ul>
           </div>
 
-          {/* Card 1 Action Button */}
-          <div className="p-6 sm:p-8 pt-0">
+          <div className="space-y-2 pt-2 border-t border-slate-100">
             <button
-              id="enter-as-user-btn"
-              onClick={() => setActiveView('search')}
-              className="w-full py-3.5 px-6 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-sm transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 min-h-[48px] group-hover:gap-3"
+              onClick={handleLoginAsUser}
+              className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition-colors flex items-center justify-center gap-2 shadow-xs min-h-[42px]"
             >
-              <span>Ingresar como Usuario / Consultar Auto</span>
-              <ArrowRight className="w-4 h-4 transition-transform" />
+              <span>Ingresar como Comprador</span>
+              <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* ======================================================== */}
-        {/* CARD 2: TALLER MECÁNICO / PROFESIONAL */}
-        {/* ======================================================== */}
-        <div className="relative group bg-white rounded-3xl border-2 border-slate-200 hover:border-emerald-500 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col justify-between overflow-hidden">
-          {/* Top subtle glow bar */}
-          <div className="h-2 bg-gradient-to-r from-emerald-500 to-teal-600 w-full" />
-
-          <div className="p-6 sm:p-8 space-y-6">
-            {/* Header / Role Badge */}
-            <div className="flex items-start justify-between gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-xs border border-emerald-100 group-hover:scale-105 transition-transform">
-                <Wrench className="w-7 h-7" />
+        {/* ========================================= */}
+        {/* CARD 2: TALLER MECÁNICO */}
+        {/* ========================================= */}
+        <div className="bg-white rounded-2xl border-2 border-slate-200 hover:border-emerald-500 shadow-sm hover:shadow-md transition-all p-5 sm:p-6 flex flex-col justify-between space-y-5">
+          <div className="space-y-4">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+                  <Wrench className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-slate-900">Taller Mecánico</h2>
+                  <p className="text-[11px] text-slate-500">Cargar services y ganar regalías</p>
+                </div>
               </div>
-              <span className="px-3 py-1 rounded-full bg-emerald-100/70 text-emerald-800 text-xs font-black uppercase tracking-wider flex items-center gap-1">
-                <Coins className="w-3 h-3 text-emerald-600" />
-                <span>50% Regalías a Talleres</span>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-100/70 text-emerald-800 text-[10px] font-bold">
+                50% Comisión
               </span>
             </div>
 
-            {/* Title & Description */}
-            <div className="space-y-2">
-              <h2 className="text-2xl font-black text-slate-900 group-hover:text-emerald-600 transition-colors leading-tight">
-                Soy Taller Mecánico / Profesional
-              </h2>
-              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                Registra los servicios de tus clientes en 30 segundos por matrícula o chasis, emite certificados QR y genera ingresos cada vez que consulten el auto.
-              </p>
-            </div>
-
-            {/* Workshop Active Profile Selector */}
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-slate-700 flex items-center gap-1.5">
-                  <Building2 className="w-4 h-4 text-emerald-600" />
-                  <span>Taller seleccionado:</span>
-                </span>
-                <span className="text-emerald-700 font-extrabold bg-emerald-100/60 px-2 py-0.5 rounded text-[11px]">
-                  {currentMechanic.tier}
-                </span>
-              </div>
-
+            {/* Quick Workshop selector */}
+            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+              <label className="text-[10px] font-bold text-slate-600 block">Taller activo:</label>
               <select
                 value={selectedMechanicId}
                 onChange={(e) => setSelectedMechanicId(e.target.value)}
-                className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-xs text-slate-900 focus:outline-none focus:border-emerald-500 min-h-[42px]"
+                className="w-full p-1.5 bg-white border border-slate-300 rounded-lg font-bold text-xs text-slate-900 focus:outline-none"
               >
                 {mechanics.map((m) => (
                   <option key={m.id} value={m.id}>
-                    {m.workshopName} ({m.city}, {m.country === 'UY' ? 'Uruguay' : 'Argentina'})
+                    {m.workshopName} ({m.city})
                   </option>
                 ))}
               </select>
-
-              <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
-                <span>Mecánico: <strong className="text-slate-800">{currentMechanic.name}</strong></span>
-                <span className="text-emerald-700 font-bold">
-                  Acumulado: {formatCurrency(currentMechanic.accumulatedEarningsUyu)}
-                </span>
-              </div>
             </div>
 
-            {/* Feature List */}
-            <div className="space-y-2 pt-1 text-xs text-slate-600">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Carga ultra rápida sin fricción por chasis o chapa</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>50% del valor de cada consulta acreditado a tu cuenta bancaria</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Respaldo oficial de garantías y órdenes de trabajo digitales</span>
-              </div>
-            </div>
+            <ul className="space-y-1.5 text-xs text-slate-600">
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>Carga ágil en 30 segundos por matrícula o chasis</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>50% de cada consulta acreditado directamente</span>
+              </li>
+            </ul>
           </div>
 
-          {/* Card 2 Action Buttons */}
-          <div className="p-6 sm:p-8 pt-0 space-y-2.5">
+          <div className="space-y-2 pt-2 border-t border-slate-100">
             <button
-              id="open-new-repair-landing-btn"
-              onClick={onOpenNewRepair}
-              className="w-full py-3 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm transition-all shadow-md shadow-emerald-600/30 flex items-center justify-center gap-2 min-h-[46px]"
+              onClick={() => handleLoginAsMechanic()}
+              className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors flex items-center justify-center gap-2 shadow-xs min-h-[42px]"
             >
-              <PlusCircle className="w-4 h-4" />
-              <span>+ Cargar Mantenimiento / Service</span>
-            </button>
-
-            <button
-              id="enter-as-mechanic-btn"
-              onClick={() => setActiveView('mechanics_portal')}
-              className="w-full py-3 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 min-h-[46px]"
-            >
+              <Wrench className="w-4 h-4" />
               <span>Ingresar al Portal del Taller</span>
-              <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Trust & Network Stats Bar */}
-      <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center divide-y md:divide-y-0 md:divide-x divide-slate-800">
-          <div className="space-y-1">
-            <span className="text-2xl sm:text-3xl font-black text-blue-400 font-mono">100%</span>
-            <p className="text-xs text-slate-300 font-medium">Trazabilidad en Talleres</p>
-          </div>
-
-          <div className="space-y-1 pt-4 md:pt-0">
-            <span className="text-2xl sm:text-3xl font-black text-emerald-400 font-mono">50%</span>
-            <p className="text-xs text-slate-300 font-medium">Reparto a Mecánicos</p>
-          </div>
-
-          <div className="space-y-1 pt-4 md:pt-0">
-            <span className="text-2xl sm:text-3xl font-black text-sky-400 font-mono">
-              {formatCurrency(totalRoyaltiesDistributedUyu)}
-            </span>
-            <p className="text-xs text-slate-300 font-medium">Regalías Liquidadas</p>
-          </div>
-
-          <div className="space-y-1 pt-4 md:pt-0">
-            <span className="text-2xl sm:text-3xl font-black text-indigo-400 font-mono">24/7</span>
-            <p className="text-xs text-slate-300 font-medium">Auditoría con IA y Sellos QR</p>
-          </div>
+      {/* Quick Stats Bar - Simple and clean */}
+      <div className="bg-slate-900 text-white rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-sm text-center grid grid-cols-3 gap-2 text-xs">
+        <div>
+          <span className="font-black text-blue-400 text-base sm:text-lg block">100%</span>
+          <span className="text-slate-400 text-[11px]">Trazabilidad Taller</span>
+        </div>
+        <div>
+          <span className="font-black text-emerald-400 text-base sm:text-lg block">50%</span>
+          <span className="text-slate-400 text-[11px]">Regalías al Mecánico</span>
+        </div>
+        <div>
+          <span className="font-black text-sky-400 text-base sm:text-lg block">
+            {formatCurrency(totalRoyaltiesDistributedUyu)}
+          </span>
+          <span className="text-slate-400 text-[11px]">Liquidadas</span>
         </div>
       </div>
     </div>
